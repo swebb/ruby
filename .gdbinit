@@ -1327,6 +1327,7 @@ define print_flags
 end
 
 source -s misc/gdb.py
+source -s misc/zjit.py
 
 # Moved from beginning, since it fails on older gdbs
 set startup-with-shell off
