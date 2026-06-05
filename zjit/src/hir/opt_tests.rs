@@ -852,6 +852,64 @@ mod hir_opt_tests {
     }
 
     #[test]
+    fn test_fold_lshift() {
+        eval("
+            def test
+              1 << 2
+            end
+        ");
+
+        assert_snapshot!(inspect("test"), @"4");
+        assert_snapshot!(hir_string("test"), @"
+        fn test@<compiled>:3:
+        bb1():
+          EntryPoint interpreter
+          v1:BasicObject = LoadSelf
+          Jump bb3(v1)
+        bb2():
+          EntryPoint JIT(0)
+          v4:BasicObject = LoadArg :self@0
+          Jump bb3(v4)
+        bb3(v6:BasicObject):
+          v10:Fixnum[1] = Const Value(1)
+          v12:Fixnum[2] = Const Value(2)
+          PatchPoint MethodRedefined(Integer@0x1000, <<@0x1008, cme:0x1010)
+          v25:Fixnum[4] = Const Value(4)
+          CheckInterrupts
+          Return v25
+        ");
+    }
+
+    #[test]
+    fn test_fold_negative_lshift() {
+        eval("
+            def test
+              4 << -2
+            end
+        ");
+
+        assert_snapshot!(inspect("test"), @"1");
+        assert_snapshot!(hir_string("test"), @"
+        fn test@<compiled>:3:
+        bb1():
+          EntryPoint interpreter
+          v1:BasicObject = LoadSelf
+          Jump bb3(v1)
+        bb2():
+          EntryPoint JIT(0)
+          v4:BasicObject = LoadArg :self@0
+          Jump bb3(v4)
+        bb3(v6:BasicObject):
+          v10:Fixnum[4] = Const Value(4)
+          v12:Fixnum[-2] = Const Value(-2)
+          PatchPoint MethodRedefined(Integer@0x1000, <<@0x1008, cme:0x1010)
+          v25:Fixnum[1] = Const Value(1)
+          CheckInterrupts
+          Return v25
+        ");
+    }
+
+    #[test]
     fn test_fold_fixnum_less() {
         eval("
             def test

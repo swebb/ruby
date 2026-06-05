@@ -5271,6 +5271,16 @@ impl Function {
                             _ => None,
                         })
                     }
+                    Insn::FixnumLShift { left, right, .. } => {
+                        self.fold_fixnum_bop(insn_id, left, right, |l, r| match (l, r) {
+                            (Some(l), Some(r)) if r >= 0 => l.checked_shl(r as u32), // Check how to do this typecast safely/correctly
+                            (Some(l), Some(r)) if r < 0 => l.checked_shr((-r) as u32), // Check how to do this typecast safely/correctly
+                            _ => None,
+                        })
+                    }
+                    Insn::FixnumRShift { left, right, .. } => {
+                        continue;
+                    }
                     Insn::FixnumEq { left, right, .. } => {
                         self.fold_fixnum_pred(insn_id, left, right, |l, r| match (l, r) {
                             (Some(l), Some(r)) => Some(l == r),
